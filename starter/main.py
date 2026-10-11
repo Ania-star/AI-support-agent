@@ -19,6 +19,7 @@ Invoke deployed agent:
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 # These imports are provided. Do not remove them.
+import textwrap
 from strands import Agent, tool
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from bedrock_agentcore.memory import MemoryClient
@@ -478,9 +479,12 @@ def calculate_loyalty_discount(
 
     print(json.dumps(result))
     """
+    code = textwrap.dedent(code)
+
+    
+    compile(code, "loyalty", "exec")
 
     try:
-        # TODO: Execute the code using code_session and return the result
         with code_session(REGION) as session:
             response = session.invoke(
                 "executeCode",
@@ -502,7 +506,9 @@ def calculate_loyalty_discount(
                         if item.get("type") == "text":
                             return item["text"]
 
-            raise RuntimeError("Code Interpreter returned no calculation result")
+            raise RuntimeError(
+                "Code Interpreter returned no calculation result"
+            )
 
     except Exception as e:
         # TODO: Implement fallback calculation using tier discount only
@@ -594,11 +600,23 @@ async def invoke(payload, context=None):
                 tools=tools,
                 hooks=[memory_hook],
             )
-
             response = agent(user_input)
+            for message in agent.messages:
+                for block in message.get("content", []):
+                    if "toolUse" in block:
+                        logger.warning(
+                            "TOOL CALL: %s",
+                            json.dumps(block["toolUse"], default=str)
+                        )
+                    if "toolResult" in block:
+                        logger.warning(
+                            "TOOL RESULT: %s",
+                            json.dumps(block["toolResult"], default=str)
+                        )
 
         # 7. Return first text block
         return response.message["content"][0]["text"]
+        
 
     # 8. Handle errors
     except Exception as e:
