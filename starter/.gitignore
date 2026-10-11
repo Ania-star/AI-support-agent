@@ -1,0 +1,29 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# AgentCore generated deployment state
+.bedrock_agentcore/
+.bedrock_agentcore.yaml
+
+# Deployment packages
+deployment*.zip
+lambda/*.zip
+
+# Backups
+*.backup
+
+# Temporary inputs
+test3_payload.json
+retrieval-query.json
+runtime-config.json
